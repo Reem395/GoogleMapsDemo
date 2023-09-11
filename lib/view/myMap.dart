@@ -297,8 +297,8 @@ class _MyMapsState extends State<MyMaps> {
   }
 
   getPolyPoints({String? intendedLocation, double? lat, double? long}) async {
-    // polyLineCoordinates.clear();
-    // _polyLines.clear();
+    polyLineCoordinates.clear();
+    _polyLines.clear();
     double latitude;
     double longitude;
     try {
