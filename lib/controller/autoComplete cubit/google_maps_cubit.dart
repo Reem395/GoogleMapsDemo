@@ -37,7 +37,7 @@ class GoogleMapsCubit extends Cubit<GoogleMapsState> {
           for (var element in predictedPlaces!) {
             predictedPlacesDes?.add(element.description!);
           }
-          print("placesAutocomplete predictedPlacesDes :${predictedPlacesDes}");
+          print("placesAutocomplete predictedPlacesDes :$predictedPlacesDes");
 
           emit(AutoCompleteSuccess());
         }

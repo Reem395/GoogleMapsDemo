@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:uber_clone/view/myMap.dart';
+import 'package:uber_clone/view/my_map.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});

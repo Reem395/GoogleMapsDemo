@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart' as geolocator;
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
-// import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart' as loc;
 
@@ -30,10 +27,9 @@ class _MapsState extends State<Maps> {
   final TextEditingController _destinationController = TextEditingController();
   late geolocator.Position position;
   loc.LocationData? currentLocation;
-  GoogleMapsServices _googleMapsServices = GoogleMapsServices();
+  final GoogleMapsServices _googleMapsServices = GoogleMapsServices();
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     getCurrentLocation();
   }
@@ -160,7 +156,8 @@ class _MapsState extends State<Maps> {
                         ),
                         hintText: "destination?",
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.only(left: 15.0, top: 16.0),
+                        contentPadding:
+                            const EdgeInsets.only(left: 15.0, top: 16.0),
                       ),
                     ),
                   ),
@@ -207,7 +204,9 @@ class _MapsState extends State<Maps> {
     } while (index < len);
 
 /*adding to previous value as done in encoding */
-    for (var i = 2; i < lList.length; i++) lList[i] += lList[i - 2];
+    for (var i = 2; i < lList.length; i++) {
+      lList[i] += lList[i - 2];
+    }
 
     print(lList.toString());
 
