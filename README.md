@@ -1,4 +1,4 @@
-# uber_clone
+# GoogleMapsDemo
 
 A new Flutter project.
 
