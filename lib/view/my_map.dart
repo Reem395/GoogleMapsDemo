@@ -37,9 +37,13 @@ class _MyMapsState extends State<MyMaps> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _destinationController = TextEditingController();
   late geolocator.Position position;
+  int animationDuration = 5; // Duration for the animation in seconds
+  int animationSteps = 60; // Number of animation steps
+  int animationIndex = 0; // Current animation step
   @override
   void initState() {
     super.initState();
+    print("poly set $_polyLines");
     setCustomMarkerIcon();
     getCurrentLocation();
   }
@@ -102,15 +106,6 @@ class _MyMapsState extends State<MyMaps> {
 
   getCurrentLocation() async {
     try {
-      // var serviceEnabled = await location.serviceEnabled();
-      // if (!serviceEnabled) {
-      //   print("service not enabled");
-      //   serviceEnabled = await location.requestService();
-      //   if (!serviceEnabled) {
-      //     // return;
-      //     print("service not enabled 2");
-      //   }
-      // }
       await geolocator.Geolocator.requestPermission();
       position = await geolocator.Geolocator.getCurrentPosition(
         desiredAccuracy: geolocator.LocationAccuracy.high,
@@ -147,7 +142,8 @@ class _MyMapsState extends State<MyMaps> {
                         target: LatLng(_initialPostion!.latitude,
                             _initialPostion!.longitude),
                         zoom: currentZoom),
-                    polylines: _polyLines,
+                    // polylines: _polyLines,
+                    polylines: _buildPolylines(),
                     onTap: _onMapTapped,
                     onMapCreated: onCreated,
                     onCameraMove: onCameraMove,
@@ -241,19 +237,8 @@ class _MyMapsState extends State<MyMaps> {
                           hintText: "destination?",
                           border: InputBorder.none,
                           suffixIcon: IconButton(
-                            icon: const Icon(Icons.cancel),
-                            onPressed: () {
-                              _destinationController.clear();
-                              setState(() {
-                                googleCubit.predictedPlacesDes?.clear();
-                                googleCubit.showSuggestionList = false;
-                                _destination = null;
-                                _markers.clear();
-                                _polyLines.clear();
-                                polyLineCoordinates.clear();
-                              });
-                            },
-                          ),
+                              icon: const Icon(Icons.cancel),
+                              onPressed: _onCancelButtonPressed),
                           contentPadding:
                               const EdgeInsets.only(left: 15.0, top: 16.0),
                         ),
@@ -293,9 +278,23 @@ class _MyMapsState extends State<MyMaps> {
               ));
   }
 
-  getPolyPoints({String? intendedLocation, double? lat, double? long}) async {
+  void _onCancelButtonPressed() {
+    _destinationController.clear();
+    animationIndex = 0;
+    BlocProvider.of<GoogleMapsCubit>(context).predictedPlacesDes?.clear();
+    BlocProvider.of<GoogleMapsCubit>(context).showSuggestionList = false;
+    _destination = null;
+    _markers.clear();
+    _polyLines.clear();
+    polyLineCoordinates.clear();
+    setState(() {});
+  }
+
+  void getPolyPoints(
+      {String? intendedLocation, double? lat, double? long}) async {
     polyLineCoordinates.clear();
     _polyLines.clear();
+
     double latitude;
     double longitude;
     try {
@@ -307,13 +306,6 @@ class _MyMapsState extends State<MyMaps> {
           latitude = (addressLatLng.lat as double?)!;
           longitude = (addressLatLng.lng as double?)!;
           _destination = LatLng(latitude, longitude);
-
-          // List<geocod.Location> placemark = await geocod
-          //     .locationFromAddress(intendedLocation, localeIdentifier: "en_EG");
-          // print("placemark len ${placemark.length}");
-          // latitude = placemark[0].latitude;
-          // longitude = placemark[0].longitude;
-          // _destination = LatLng(latitude, longitude);
         }
       } else {
         _initialPostion = LatLng(lat!, long!);
@@ -321,39 +313,63 @@ class _MyMapsState extends State<MyMaps> {
       poly.PolylinePoints polylinePoints = poly.PolylinePoints();
       poly.PolylineResult result =
           await polylinePoints.getRouteBetweenCoordinates(
-              API,
-              poly.PointLatLng(
-                  _initialPostion!.latitude, _initialPostion!.longitude),
-              poly.PointLatLng(
-                  _destination!.latitude, _destination!.longitude));
+        API,
+        poly.PointLatLng(
+          _initialPostion!.latitude,
+          _initialPostion!.longitude,
+        ),
+        poly.PointLatLng(
+          _destination!.latitude,
+          _destination!.longitude,
+        ),
+      );
+
       if (result.points.isNotEmpty) {
         for (var point in result.points) {
           polyLineCoordinates.add(LatLng(point.latitude, point.longitude));
-          _polyLines.add(Polyline(
-              polylineId: PolylineId(_destination.toString()),
-              points: polyLineCoordinates,
-              color: Colors.black,
-              width: 5));
         }
         _addMarker(destination: _destination!);
 
-        setState(() {});
+        _animatePolyline();
       }
     } catch (e) {
       print("error from getPoly $e");
     }
   }
 
+  void _animatePolyline() {
+    Timer.periodic(Duration(seconds: animationDuration ~/ animationSteps),
+        (timer) {
+      if (animationIndex < animationSteps) {
+        animationIndex++;
+        setState(() {});
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  Set<Polyline> _buildPolylines() {
+    double opacityStep = 1.0 / animationSteps;
+
+    for (int i = 0; i <= animationIndex; i++) {
+      _polyLines.add(Polyline(
+        polylineId: PolylineId('polyline_$i'),
+        points: polyLineCoordinates,
+        color: const ui.Color.fromARGB(255, 153, 90, 168)
+            .withOpacity(i * opacityStep), // Vary opacity
+        width: 5,
+      ));
+    }
+
+    return _polyLines;
+  }
+
   void _addMarker({required LatLng destination, String? address}) async {
-    // _markers.clear();
     _markers.add(Marker(
         markerId: const MarkerId("Current Location"),
         position: LatLng(_initialPostion!.latitude, _initialPostion!.longitude),
-        icon: currentLocationIcon
-        //  await BitmapDescriptor.fromAssetImage(
-        //     const ImageConfiguration(), 'assets/images/car.png')
-
-        ));
+        icon: currentLocationIcon));
     setState(() {
       _markers.add(Marker(
           markerId: MarkerId(_destination.toString()),
@@ -389,6 +405,58 @@ class _MyMapsState extends State<MyMaps> {
       currentZoom = position.zoom;
     });
   }
+
+// getPolyPoints({String? intendedLocation, double? lat, double? long}) async {
+  //   polyLineCoordinates.clear();
+  //   _polyLines.clear();
+  //   double latitude;
+  //   double longitude;
+  //   try {
+  //     if (intendedLocation != null) {
+  //       if (intendedLocation.isNotEmpty) {
+  //         Location addressLatLng =
+  //             await BlocProvider.of<GoogleMapsCubit>(context)
+  //                 .getAddressLatLng(address: intendedLocation);
+  //         latitude = (addressLatLng.lat as double?)!;
+  //         longitude = (addressLatLng.lng as double?)!;
+  //         _destination = LatLng(latitude, longitude);
+
+  //         // List<geocod.Location> placemark = await geocod
+  //         //     .locationFromAddress(intendedLocation, localeIdentifier: "en_EG");
+  //         // print("placemark len ${placemark.length}");
+  //         // latitude = placemark[0].latitude;
+  //         // longitude = placemark[0].longitude;
+  //         // _destination = LatLng(latitude, longitude);
+  //       }
+  //     } else {
+  //       _initialPostion = LatLng(lat!, long!);
+  //     }
+  //     poly.PolylinePoints polylinePoints = poly.PolylinePoints();
+  //     poly.PolylineResult result =
+  //         await polylinePoints.getRouteBetweenCoordinates(
+  //             API,
+  //             poly.PointLatLng(
+  //                 _initialPostion!.latitude, _initialPostion!.longitude),
+  //             poly.PointLatLng(
+  //                 _destination!.latitude, _destination!.longitude));
+  //     if (result.points.isNotEmpty) {
+  //       for (var point in result.points) {
+  //         polyLineCoordinates.add(LatLng(point.latitude, point.longitude));
+  //         _polyLines.add(Polyline(
+  //             polylineId: PolylineId(_destination.toString()),
+  //             points: polyLineCoordinates,
+  //             color: Colors.black,
+  //             width: 5));
+  //       }
+
+  //       _addMarker(destination: _destination!);
+
+  //       setState(() {});
+  //     }
+  //   } catch (e) {
+  //     print("error from getPoly $e");
+  //   }
+  // }
 
   // void _onDestinationTextFieldTapped() async {
   //   try {
