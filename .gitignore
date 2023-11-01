@@ -32,9 +32,11 @@ migrate_working_dir/
 .pub/
 /build/
 ios/Runner/AppDelegate.swift
-
-
-
+android/app/src/main/AndroidManifest.xml
+**/GoogleService-Info.plist
+lib/firebase_options.dart
+lib/utils/constants.dart
+android/app/google-services.json
 # Symbolication related
 app.*.symbols
 
@@ -46,3 +48,5 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+
+*.log
