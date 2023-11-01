@@ -37,6 +37,7 @@ android/app/src/main/AndroidManifest.xml
 lib/firebase_options.dart
 lib/utils/constants.dart
 android/app/google-services.json
+
 # Symbolication related
 app.*.symbols
 
