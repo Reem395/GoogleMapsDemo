@@ -1,16 +1,8 @@
 # GoogleMapsDemo
 
-A new Flutter project.
+This is a demo project for a mobile application that demonstrates the integration of various packages to create a fully functional Google Maps-based application.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Features
+* Searching for places with a suggestion list.
+* Draw a route between the current location and the destination.
+* Live location tracking.
